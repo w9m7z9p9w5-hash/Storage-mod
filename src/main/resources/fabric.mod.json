@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "istore",
+  "version": "${version}",
+  "name": "Infinite Storage (client)",
+  "description": "Client-side screen for the Infinite Storage data pack. Works on Realms.",
+  "authors": ["Andrew"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.istore.IStoreClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
