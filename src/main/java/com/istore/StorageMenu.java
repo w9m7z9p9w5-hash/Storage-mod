@@ -18,7 +18,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -39,6 +39,14 @@ public class StorageMenu extends ChestMenu {
         "Click: take a stack", "Right-click: take half a stack", "Shift-click: take 1"
     };
 
+    // Looked up by id instead of an Items.* constant, because 26.x reworked the coloured-item constants.
+    private static final Item FILLER = filler();
+
+    private static Item filler() {
+        Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse("minecraft:gray_stained_glass_pane"));
+        return item == Items.AIR ? Items.PAPER : item;
+    }
+
     private record Row(String id, Item item, String name, int count) {}
 
     private final Container display;
@@ -56,21 +64,21 @@ public class StorageMenu extends ChestMenu {
         if (player == null || player.containerMenu != player.inventoryMenu) return;
         StorageMenu menu = new StorageMenu(player.getInventory());
         player.containerMenu = menu;
-        mc.setScreen(new ContainerScreen(menu, player.getInventory(), Component.literal("Infinite Storage")));
+        mc.gui.setScreen(new ContainerScreen(menu, player.getInventory(), Component.literal("Infinite Storage")));
         StorageData.sync();
     }
 
     // Only clicks on the 54 display slots do anything. Everything else (your own inventory slots,
     // hotkeys, dragging, dropping) is ignored so this fake menu can never desync your real inventory.
     @Override
-    public void clicked(int slotId, int button, ClickType type, Player player) {
-        if (slotId >= 0 && slotId < SIZE && (type == ClickType.PICKUP || type == ClickType.QUICK_MOVE)) {
+    public void clicked(int slotId, int button, ContainerInput type, Player player) {
+        if (slotId >= 0 && slotId < SIZE && (type == ContainerInput.PICKUP || type == ContainerInput.QUICK_MOVE)) {
             handle(slotId, button, type);
             refresh();
         }
     }
 
-    private void handle(int slot, int button, ClickType type) {
+    private void handle(int slot, int button, ContainerInput type) {
         if (slot >= PER_PAGE) {
             switch (slot) {
                 case 45 -> page--;
@@ -93,7 +101,7 @@ public class StorageMenu extends ChestMenu {
 
         int max = Math.max(1, row.item().getDefaultMaxStackSize());
         int amount;
-        if (type == ClickType.QUICK_MOVE) amount = 1;
+        if (type == ContainerInput.QUICK_MOVE) amount = 1;
         else if (button == 1) amount = Math.max(1, Math.min(max, row.count()) / 2);
         else amount = Math.min(max, row.count());
         StorageData.withdraw(row.id(), amount);
@@ -124,7 +132,7 @@ public class StorageMenu extends ChestMenu {
         int pages = Math.max(1, (rows.size() + PER_PAGE - 1) / PER_PAGE);
         page = Math.max(0, Math.min(page, pages - 1));
 
-        for (int i = 0; i < SIZE; i++) display.setItem(i, named(Items.GRAY_STAINED_GLASS_PANE, " "));
+        for (int i = 0; i < SIZE; i++) display.setItem(i, named(FILLER, " "));
 
         for (int i = 0; i < PER_PAGE; i++) {
             int idx = page * PER_PAGE + i;

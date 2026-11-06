@@ -51,7 +51,7 @@ public final class StorageData {
 
     private static void refreshOpenScreen() {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.screen instanceof AbstractContainerScreen<?> screen && screen.getMenu() instanceof StorageMenu menu) {
+        if (mc.gui.screen() instanceof AbstractContainerScreen<?> screen && screen.getMenu() instanceof StorageMenu menu) {
             menu.refresh();
         }
     }
